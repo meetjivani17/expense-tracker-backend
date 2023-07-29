@@ -17,7 +17,7 @@ const DeleteTransactionController = [
             const condition = {};
             const { id } = matchedData(req);
             condition["_id"] = id;
-            condition["creator_id"] = mongoose.Types.ObjectId(req.user.id);
+            condition["creator_id"] = mongoose.Types.ObjectId(req.user._id);
             await TransactionModel.findOneAndDelete(condition);
 
             return apiResponseHelper.successResponse(res, "category deleted")

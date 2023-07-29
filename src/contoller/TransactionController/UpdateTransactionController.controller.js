@@ -45,7 +45,7 @@ const UpdateTransactionController = [
       data["description"] = description;
       data["category"] = category;
       condition["_id"] = mongoose.Types.ObjectId(id);
-      condition["creator_id"] = mongoose.Types.ObjectId(req.user.id);
+      condition["creator_id"] = mongoose.Types.ObjectId(req.user._id);
 
       await CategoryModel.updateOne(condition, data);
       return apiResponseHelper.successResponse(res, "transaction updated");

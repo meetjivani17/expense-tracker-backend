@@ -3,6 +3,8 @@ const PayloadValidatorMiddleware = require("../../middleware/PayloadValidator.mi
 const { body, matchedData } = require("express-validator");
 const _lang = require("../../utils/lang");
 const TransactionModel = require("../../model/Transaction.model");
+const mongoose = require("mongoose");
+
 
 const CreateTransactionController = [
   body("description")
@@ -37,7 +39,7 @@ const CreateTransactionController = [
       data["amount"] = amount;
       data["description"] = description;
       data["category"] =  category;
-      data["creator_id"] = mongoose.Types.ObjectId(req.user.id);
+      data["creator_id"] = mongoose.Types.ObjectId(req.user._id);
       await TransactionModel.create(data);
       return apiResponseHelper.successResponse(res, "transaction added");
     } catch (error) {

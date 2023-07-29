@@ -16,7 +16,7 @@ const DeleteCategoryController = [
       const { id } = matchedData(req);
       const condition = {};
       condition["_id"] = id;
-      condition["creator_id"] = mongoose.Types.ObjectId(req.user.id);
+      condition["creator_id"] = mongoose.Types.ObjectId(req.user._id);
 
       const deletedCategory = await CategoryModel.findOneAndDelete(condition);
 

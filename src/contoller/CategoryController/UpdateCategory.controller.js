@@ -1,12 +1,12 @@
 const apiResponseHelper = require("../../utils/apiResponse.helper");
 const PayloadValidatorMiddleware = require("../../middleware/PayloadValidator.middleware");
-const { body, matchedData } = require("express-validator");
+const { query, body, matchedData } = require("express-validator");
 const _lang = require("../../utils/lang");
 const { default: mongoose } = require("mongoose");
 const CategoryModel = require("../../model/Category.model");
 
 const UpdateCategoryController = [
-  body("id")
+  query("id")
     .notEmpty({ ignore_whitespace: true })
     .withMessage("id of category is required!")
     .trim()
@@ -30,7 +30,7 @@ const UpdateCategoryController = [
       const { id, ...data } = matchedData(req);
       const condition = {};
       condition["_id"] = mongoose.Types.ObjectId(id);
-      condition["creator_id"] = mongoose.Types.ObjectId(req.user.id);
+      condition["creator_id"] = mongoose.Types.ObjectId(req.user._id);
       await CategoryModel.updateOne(condition, data);
       return apiResponseHelper.successResponse(res, "category updated");
     } catch (error) {

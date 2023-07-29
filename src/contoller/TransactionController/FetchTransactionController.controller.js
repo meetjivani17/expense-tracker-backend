@@ -11,6 +11,8 @@ const {
   LIST_VIEW_TIME,
   GRAPHICAL_VIEW_DURATION,
 } = require("../../utils/constants/common.constants");
+const mongoose = require("mongoose");
+
 
 const FetchTransactionController = [
   query("trasactionFetchType")
@@ -113,7 +115,7 @@ const FetchTransactionController = [
       const { transactionFetchType } = matchedData(req);
       const modal = TransactionModel;
       const condition = {};
-      condition["creator_id"] = mongoose.Types.ObjectId(req.user.id);
+      condition["creator_id"] = mongoose.Types.ObjectId(req.user._id);
 
       const query = [];
       const afterQuery = [];

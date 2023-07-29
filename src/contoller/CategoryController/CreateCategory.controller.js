@@ -4,6 +4,7 @@ const { body, matchedData } = require("express-validator");
 const _lang = require("../../utils/lang");
 const CategoryModel = require("../../model/Category.model");
 const UserModel = require("../../model/User.model");
+const mongoose = require("mongoose");
 
 const CreateCategoryController = [
   body("name")
@@ -22,8 +23,7 @@ const CreateCategoryController = [
   async (req, res) => {
     try {
       const data = matchedData(req);
-      data["creator_id"] = mongoose.Types.ObjectId(req.user.id);
-
+      data["creator_id"] = mongoose.Types.ObjectId(req.user._id);
       await CategoryModel.create(data);
       return apiResponseHelper.successResponse(res, "category added");
     } catch (error) {
