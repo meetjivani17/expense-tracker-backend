@@ -43,7 +43,6 @@ const CreateTransactionController = [
       await TransactionModel.create(data);
       return apiResponseHelper.successResponse(res, "transaction added");
     } catch (error) {
-      console.log(error);
       return apiResponseHelper.errorResponse(res, _lang("server_error"));
     }
   },
