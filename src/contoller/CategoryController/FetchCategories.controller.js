@@ -21,7 +21,6 @@ const FetchCategoriesController = [
         response
       );
     } catch (error) {
-      console.log(error);
       return apiResponseHelper.errorResponse(res, _lang("server_error"));
     }
   },
