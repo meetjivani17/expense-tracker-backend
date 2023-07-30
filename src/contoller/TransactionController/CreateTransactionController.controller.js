@@ -5,7 +5,6 @@ const _lang = require("../../utils/lang");
 const TransactionModel = require("../../model/Transaction.model");
 const mongoose = require("mongoose");
 
-
 const CreateTransactionController = [
   body("description")
     .notEmpty({ ignore_whitespace: true })
@@ -36,9 +35,10 @@ const CreateTransactionController = [
         id: mongoose.Types.ObjectId(req.body.category_id),
         name: req.body.category_name,
       };
+      const data = {};
       data["amount"] = amount;
       data["description"] = description;
-      data["category"] =  category;
+      data["category"] = category;
       data["creator_id"] = mongoose.Types.ObjectId(req.user._id);
       await TransactionModel.create(data);
       return apiResponseHelper.successResponse(res, "transaction added");

@@ -12,7 +12,6 @@ const Categoryschema = mongoose.Schema({
   },
   icon: {
     type: String,
-    unique: true,
     required: true,
   },
 });

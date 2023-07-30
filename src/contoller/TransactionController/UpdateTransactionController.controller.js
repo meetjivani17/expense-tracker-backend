@@ -1,12 +1,12 @@
 const apiResponseHelper = require("../../utils/apiResponse.helper");
 const PayloadValidatorMiddleware = require("../../middleware/PayloadValidator.middleware");
-const { body, matchedData } = require("express-validator");
+const { query, body, matchedData } = require("express-validator");
 const _lang = require("../../utils/lang");
 const { default: mongoose } = require("mongoose");
-const CategoryModel = require("../../model/Category.model");
+const TransactionModel = require("../../model/Transaction.model");
 
 const UpdateTransactionController = [
-  body("id")
+  query("id")
     .notEmpty({ ignore_whitespace: true })
     .withMessage("id of transaction is required!")
     .trim()
@@ -41,13 +41,14 @@ const UpdateTransactionController = [
         id: mongoose.Types.ObjectId(req.body.category_id),
         name: req.body.category_name,
       };
+      const data = {};
       data["amount"] = amount;
       data["description"] = description;
       data["category"] = category;
       condition["_id"] = mongoose.Types.ObjectId(id);
       condition["creator_id"] = mongoose.Types.ObjectId(req.user._id);
 
-      await CategoryModel.updateOne(condition, data);
+      await TransactionModel.updateOne(condition, data);
       return apiResponseHelper.successResponse(res, "transaction updated");
     } catch (error) {
       return apiResponseHelper.errorResponse(res, _lang("server_error"));

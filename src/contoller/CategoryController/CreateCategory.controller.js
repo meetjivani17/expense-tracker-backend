@@ -27,6 +27,8 @@ const CreateCategoryController = [
       await CategoryModel.create(data);
       return apiResponseHelper.successResponse(res, "category added");
     } catch (error) {
+
+      console.log(error)
       return apiResponseHelper.errorResponse(res, _lang("server_error"));
     }
   },
