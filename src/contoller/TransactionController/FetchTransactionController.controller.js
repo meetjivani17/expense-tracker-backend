@@ -13,9 +13,8 @@ const {
 } = require("../../utils/constants/common.constants");
 const mongoose = require("mongoose");
 
-
 const FetchTransactionController = [
-  query("trasactionFetchType")
+  query("transactionFetchType")
     .notEmpty({ ignore_whitespace: true })
     .withMessage("transaction fetch type required")
     .bail()
@@ -70,16 +69,16 @@ const FetchTransactionController = [
       } else return value;
     })
     .withMessage("list view time is not valid"),
-  query("trasactionFetchDuration")
-    .notEmpty({ ignore_whitespace: true })
-    .withMessage("transaction fetch duration required")
-    .bail()
-    .custom((value) => {
-      if (!Object.values(TRANSACTION_FETCH_DURATION).includes(value)) {
-        throw Error("transaction fetch duration is not valid");
-      } else return value;
-    })
-    .withMessage("transaction fetch duration is not valid"),
+  // query("trasactionFetchDuration")
+  //   .notEmpty({ ignore_whitespace: true })
+  //   .withMessage("transaction fetch duration required")
+  //   .bail()
+  //   .custom((value) => {
+  //     if (!Object.values(TRANSACTION_FETCH_DURATION).includes(value)) {
+  //       throw Error("transaction fetch duration is not valid");
+  //     } else return value;
+  //   })
+  //   .withMessage("transaction fetch duration is not valid"),
   query("category_id")
     .if((value, { req }) => req.query.transactionFetchType)
     .if(
@@ -119,7 +118,9 @@ const FetchTransactionController = [
 
       const query = [];
       const afterQuery = [];
+      console.log(transactionFetchType +  " " + req.query.graphicalViewType)
       if (TRANSACTION_FETCH_TYPE.GRAPHICAL_VIEW == transactionFetchType) {
+        console.log(1);
         if (
           GRAPHICAL_VIEW_TYPE.FILTER_BY_CATEGORY == req.query.graphicalViewType
         )
@@ -165,7 +166,7 @@ const FetchTransactionController = [
           });
 
           afterQuery.push({
-            $groupBy: {
+            $group: {
               _id: { month: "$month" },
               amount: { $sum: "$amount" },
             },
@@ -206,25 +207,25 @@ const FetchTransactionController = [
             },
           });
           afterQuery.push({
-            $groupBy: {
+            $group: {
               _id: { dayOfMonth: "$dayOfMonth" },
               amount: { $sum: "$amount" },
             },
           });
         } else {
-          const dateObj = new Date();
-          const days = (date.getDay() + 7 - 1) % 7;
-          dateObj.setDate(date.getDate() - days);
+          const date = new Date();
+          const days = (date.getDay() + 6) % 7;
+          date.setDate(date.getDate() - days);
           const startTimeTemp = new Date(
-            dateObj.getFullYear(),
-            dateObj.getMonth(),
-            dateObj.getDate(),
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
             0,
             0,
             0
           ).getTime();
 
-          const endTimeTemp = parseInt(startTime) + 7 * 24 * 60 * 60 * 1000;
+          const endTimeTemp = parseInt(startTimeTemp) + 7 * 24 * 60 * 60 * 1000;
           startTime = new Date(startTimeTemp);
           endTime = new Date(endTimeTemp);
           afterQuery.push({
@@ -241,14 +242,15 @@ const FetchTransactionController = [
             },
           });
           afterQuery.push({
-            $groupBy: {
-              _id: { dayOfMonth: "$dayOfMonth" },
+            $group: {
+              _id: { dayOfWeek: "$dayOfWeek" },
               amount: { $sum: "$amount" },
             },
           });
         }
       } else {
         if (LIST_VIEW_TIME.DATE == req.query.listViewTime) {
+          const dateObj = new Date(req.query.date);
           const startTimeTemp = new Date(
             dateObj.getFullYear(),
             dateObj.getMonth(),
@@ -257,13 +259,19 @@ const FetchTransactionController = [
             0,
             0
           ).getTime();
-
           const endTimeTemp = parseInt(startTimeTemp) + 24 * 60 * 60 * 1000;
 
           startTime = new Date(startTimeTemp);
           endTime = new Date(endTimeTemp);
+          console.log(startTime);
+          console.log(endTime);
           afterQuery.push({
-            $match: { createdAt: { $gte: startTime, $lt: endTime } },
+            $match: {
+              $and: [
+                { createdAt: { $gte: startTime } },
+                { createdAt: { $lt: endTime } },
+              ],
+            },
           });
         }
         afterQuery.push({

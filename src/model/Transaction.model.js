@@ -26,6 +26,10 @@ const Transactionschema = mongoose.Schema(
         type: String,
         require: true,
       },
+      icon: {
+        type: String,
+        require: true,
+      },
     },
   },
   { timestamps: true }
