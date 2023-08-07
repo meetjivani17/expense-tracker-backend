@@ -14,5 +14,5 @@ userRoutes.post("/", CreateUesrController);
 userRoutes.patch("/", tokenVerifier, UpdateUserController);
 userRoutes.delete("/", tokenVerifier, DeleteUserController);
 userRoutes.get("/", UserProfileController);
-
+ 
 module.exports = userRoutes;
