@@ -26,6 +26,7 @@ const CreateCategoryController = [
       data["name"] = req.body.name;
       data["icon"] = req.body.icon;
       data["creator_id"] = mongoose.Types.ObjectId(req.user._id);
+      console.log(data);
       await CategoryModel.create(data);
       return apiResponseHelper.successResponse(res, "category added");
     } catch (error) {
