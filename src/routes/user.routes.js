@@ -7,6 +7,7 @@ const CreateUesrController = require("../contoller/UserController/Register.contr
 const DeleteUserController = require("../contoller/UserController/DeleteUser.controller");
 const tokenVerifier = require("../middleware/tokenVerifiers.middleware");
 const UserProfileController = require("../contoller/UserController/UserProfile.controller");
+const UserFetchByTokenController = require("../contoller/UserController/UserFetchByToken.controller");
 
 const userRoutes = express();
 
@@ -14,5 +15,6 @@ userRoutes.post("/", CreateUesrController);
 userRoutes.patch("/", tokenVerifier, UpdateUserController);
 userRoutes.delete("/", tokenVerifier, DeleteUserController);
 userRoutes.get("/fetch-by-id", UserProfileController);
- 
+userRoutes.get("/fetch-by-token", UserFetchByTokenController);
+
 module.exports = userRoutes;
