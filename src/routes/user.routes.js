@@ -6,11 +6,13 @@ const CreateUesrController = require("../contoller/UserController/Register.contr
 
 const DeleteUserController = require("../contoller/UserController/DeleteUser.controller");
 const tokenVerifier = require("../middleware/tokenVerifiers.middleware");
+const UserProfileController = require("../contoller/UserController/UserProfile.controller");
 
 const userRoutes = express();
 
 userRoutes.post("/", CreateUesrController);
-userRoutes.patch("/",tokenVerifier, UpdateUserController);
-userRoutes.delete("/",tokenVerifier, DeleteUserController);
+userRoutes.patch("/", tokenVerifier, UpdateUserController);
+userRoutes.delete("/", tokenVerifier, DeleteUserController);
+userRoutes.get("/", UserProfileController);
 
 module.exports = userRoutes;
