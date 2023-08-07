@@ -5,7 +5,6 @@ const Transactionschema = mongoose.Schema(
     description: {
       type: String,
       required: true,
-      lowercase: true,
     },
     amount: {
       type: Number,

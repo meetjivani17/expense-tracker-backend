@@ -14,7 +14,7 @@ const userRoutes = express();
 userRoutes.post("/", CreateUesrController);
 userRoutes.patch("/", tokenVerifier, UpdateUserController);
 userRoutes.delete("/", tokenVerifier, DeleteUserController);
-userRoutes.get("/fetch-by-id", UserProfileController);
-userRoutes.get("/fetch-by-token", UserFetchByTokenController);
+userRoutes.get("/fetch-by-id",tokenVerifier, UserProfileController);
+userRoutes.get("/fetch-by-token",tokenVerifier, UserFetchByTokenController);
 
 module.exports = userRoutes;
