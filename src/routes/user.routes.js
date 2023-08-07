@@ -13,6 +13,6 @@ const userRoutes = express();
 userRoutes.post("/", CreateUesrController);
 userRoutes.patch("/", tokenVerifier, UpdateUserController);
 userRoutes.delete("/", tokenVerifier, DeleteUserController);
-userRoutes.get("/", UserProfileController);
+userRoutes.get("/fetch-by-id", UserProfileController);
  
 module.exports = userRoutes;
