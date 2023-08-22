@@ -118,9 +118,8 @@ const FetchTransactionController = [
 
       const query = [];
       const afterQuery = [];
-      console.log(transactionFetchType +  " " + req.query.graphicalViewType)
+      console.log(transactionFetchType + " " + req.query.graphicalViewType);
       if (TRANSACTION_FETCH_TYPE.GRAPHICAL_VIEW == transactionFetchType) {
-        console.log(1);
         if (
           GRAPHICAL_VIEW_TYPE.FILTER_BY_CATEGORY == req.query.graphicalViewType
         )
@@ -171,6 +170,9 @@ const FetchTransactionController = [
               amount: { $sum: "$amount" },
             },
           });
+          afterQuery.push({
+            $sort: { "_id.month": 1 },
+          });
         } else if (GRAPHICAL_VIEW_DURATION.MONTH_DAYS_DATA == duration) {
           const dateObj = new Date();
           const startTimeTemp = new Date(
@@ -212,6 +214,9 @@ const FetchTransactionController = [
               amount: { $sum: "$amount" },
             },
           });
+          afterQuery.push({
+            $sort: { "_id.dayOfMonth": 1 },
+          });
         } else {
           const date = new Date();
           const days = (date.getDay() + 6) % 7;
@@ -246,6 +251,9 @@ const FetchTransactionController = [
               _id: { dayOfWeek: "$dayOfWeek" },
               amount: { $sum: "$amount" },
             },
+          });
+          afterQuery.push({
+            $sort: { "_id.dayOfWeek": 1 },
           });
         }
       } else {
