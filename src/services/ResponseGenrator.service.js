@@ -130,7 +130,7 @@ class ResponseGenratorService {
       return {
         pageNo: this.pageNo,
         pageSize: this.pageSize,
-        total: dbresponse[0] && dbresponse[0][0] ? dbresponse[0][0].total : 0,
+        total: dbresponse[1]? dbresponse[1].length : 0,
         result: dbresponse[1] ? dbresponse[1] : [],
       };
     });

@@ -79,21 +79,21 @@ const FetchTransactionController = [
   //     } else return value;
   //   })
   //   .withMessage("transaction fetch duration is not valid"),
-  query("category_id")
-    .if((value, { req }) => req.query.transactionFetchType)
-    .if(
-      (value, { req }) =>
-        req.query.transactionFetchType == TRANSACTION_FETCH_TYPE.GRAPHICAL_VIEW
-    )
-    .if((value, { req }) => req.query.graphicalViewType)
-    .if(
-      (value, { req }) =>
-        req.query.graphicalViewType == GRAPHICAL_VIEW_TYPE.FILTER_BY_CATEGORY
-    )
-    .optional({ nullable: true })
-    .notEmpty({ ignore_whitespace: true })
-    .withMessage("category id is required")
-    .bail(),
+  // query("category_id")
+  //   .if((value, { req }) => req.query.transactionFetchType)
+  //   .if(
+  //     (value, { req }) =>
+  //       req.query.transactionFetchType == TRANSACTION_FETCH_TYPE.GRAPHICAL_VIEW
+  //   )
+  //   .if((value, { req }) => req.query.graphicalViewType)
+  //   .if(
+  //     (value, { req }) =>
+  //       req.query.graphicalViewType == GRAPHICAL_VIEW_TYPE.FILTER_BY_CATEGORY
+  //   )
+  //   .optional({ nullable: true })
+  //   .notEmpty({ ignore_whitespace: true })
+  //   .withMessage("category id is required")
+  //   .bail(),
   query("date")
     .if((value, { req }) => req.query.transactionFetchType)
     .if(
@@ -120,42 +120,80 @@ const FetchTransactionController = [
       const afterQuery = [];
       console.log(transactionFetchType + " " + req.query.graphicalViewType);
       if (TRANSACTION_FETCH_TYPE.GRAPHICAL_VIEW == transactionFetchType) {
+        const duration = req.query.graphicalViewDuration;
         if (
           GRAPHICAL_VIEW_TYPE.FILTER_BY_CATEGORY == req.query.graphicalViewType
-        )
-          condition["category"] = {
-            id: mongoose.Types.Object(req.query.category_id),
-          };
-        const duration = req.query.graphicalViewDuration;
-        if (GRAPHICAL_VIEW_DURATION.MONTHLY_DATA == duration) {
-          const dateObj = new Date();
-          const startTimeTemp = new Date(
-            dateObj.getFullYear(),
-            0,
-            0,
-            0,
-            0,
-            0
-          ).getTime();
-          const endTimeTemp = new Date(
-            dateObj.getFullYear() + 1,
-            0,
-            0,
-            0,
-            0,
-            0
-          ).getTime();
+        ) {
+          // condition["category"] = {
+          //   id: mongoose.Types.Object(req.query.category_id),
+          // };
+          let startTime, endTime;
+          if (GRAPHICAL_VIEW_DURATION.MONTHLY_DATA == duration) {
+            const dateObj = new Date();
+            const startTimeTemp = new Date(
+              dateObj.getFullYear(),
+              0,
+              0,
+              0,
+              0,
+              0
+            ).getTime();
+            const endTimeTemp = new Date(
+              dateObj.getFullYear() + 1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ).getTime();
 
-          startTime = new Date(startTimeTemp);
-          endTime = new Date(endTimeTemp);
+            startTime = new Date(startTimeTemp);
+            endTime = new Date(endTimeTemp);
+          } else if (GRAPHICAL_VIEW_DURATION.MONTH_DAYS_DATA == duration) {
+            const dateObj = new Date();
+            const startTimeTemp = new Date(
+              dateObj.getFullYear(),
+              dateObj.getMonth(),
+              0,
+              0,
+              0,
+              0
+            ).getTime();
+            const endTimeTemp = new Date(
+              dateObj.getFullYear(),
+              dateObj.getMonth() + 1,
+              0,
+              0,
+              0,
+              0
+            ).getTime();
 
+            startTime = new Date(startTimeTemp);
+            endTime = new Date(endTimeTemp);
+          } else {
+            const date = new Date();
+            const days = (date.getDay() + 6) % 7;
+            date.setDate(date.getDate() - days);
+            const startTimeTemp = new Date(
+              date.getFullYear(),
+              date.getMonth(),
+              date.getDate(),
+              0,
+              0,
+              0
+            ).getTime();
+
+            const endTimeTemp =
+              parseInt(startTimeTemp) + 7 * 24 * 60 * 60 * 1000;
+            startTime = new Date(startTimeTemp);
+            endTime = new Date(endTimeTemp);
+          }
           afterQuery.push({
             $match: { createdAt: { $gte: startTime, $lt: endTime } },
           });
 
           afterQuery.push({
             $project: {
-              month: { $month: "$createdAt" },
               description: "$description",
               category: "$category",
               creator_id: "$creator_id",
@@ -166,95 +204,142 @@ const FetchTransactionController = [
 
           afterQuery.push({
             $group: {
-              _id: { month: "$month" },
+              _id: { category: "$category" },
               amount: { $sum: "$amount" },
             },
           });
-          afterQuery.push({
-            $sort: { "_id.month": 1 },
-          });
-        } else if (GRAPHICAL_VIEW_DURATION.MONTH_DAYS_DATA == duration) {
-          const dateObj = new Date();
-          const startTimeTemp = new Date(
-            dateObj.getFullYear(),
-            dateObj.getMonth(),
-            0,
-            0,
-            0,
-            0
-          ).getTime();
-          const endTimeTemp = new Date(
-            dateObj.getFullYear(),
-            dateObj.getMonth() + 1,
-            0,
-            0,
-            0,
-            0
-          ).getTime();
-
-          startTime = new Date(startTimeTemp);
-          endTime = new Date(endTimeTemp);
-
-          afterQuery.push({
-            $match: { createdAt: { $gte: startTime, $lt: endTime } },
-          });
-          afterQuery.push({
-            $project: {
-              dayOfMonth: { $dayOfMonth: "$createdAt" },
-              description: "$description",
-              category: "$category",
-              creator_id: "$creator_id",
-              amount: "$amount",
-              createdAt: "$createdAt",
-            },
-          });
-          afterQuery.push({
-            $group: {
-              _id: { dayOfMonth: "$dayOfMonth" },
-              amount: { $sum: "$amount" },
-            },
-          });
-          afterQuery.push({
-            $sort: { "_id.dayOfMonth": 1 },
-          });
+          console.log(afterQuery);
         } else {
-          const date = new Date();
-          const days = (date.getDay() + 6) % 7;
-          date.setDate(date.getDate() - days);
-          const startTimeTemp = new Date(
-            date.getFullYear(),
-            date.getMonth(),
-            date.getDate(),
-            0,
-            0,
-            0
-          ).getTime();
+          if (GRAPHICAL_VIEW_DURATION.MONTHLY_DATA == duration) {
+            const dateObj = new Date();
+            const startTimeTemp = new Date(
+              dateObj.getFullYear(),
+              0,
+              0,
+              0,
+              0,
+              0
+            ).getTime();
+            const endTimeTemp = new Date(
+              dateObj.getFullYear() + 1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ).getTime();
 
-          const endTimeTemp = parseInt(startTimeTemp) + 7 * 24 * 60 * 60 * 1000;
-          startTime = new Date(startTimeTemp);
-          endTime = new Date(endTimeTemp);
-          afterQuery.push({
-            $match: { createdAt: { $gte: startTime, $lt: endTime } },
-          });
-          afterQuery.push({
-            $project: {
-              dayOfWeek: { $dayOfWeek: "$createdAt" },
-              description: "$description",
-              category: "$category",
-              creator_id: "$creator_id",
-              amount: "$amount",
-              createdAt: "$createdAt",
-            },
-          });
-          afterQuery.push({
-            $group: {
-              _id: { dayOfWeek: "$dayOfWeek" },
-              amount: { $sum: "$amount" },
-            },
-          });
-          afterQuery.push({
-            $sort: { "_id.dayOfWeek": 1 },
-          });
+            startTime = new Date(startTimeTemp);
+            endTime = new Date(endTimeTemp);
+
+            afterQuery.push({
+              $match: { createdAt: { $gte: startTime, $lt: endTime } },
+            });
+
+            afterQuery.push({
+              $project: {
+                month: { $month: "$createdAt" },
+                description: "$description",
+                category: "$category",
+                creator_id: "$creator_id",
+                amount: "$amount",
+                createdAt: "$createdAt",
+              },
+            });
+
+            afterQuery.push({
+              $group: {
+                _id: { month: "$month" },
+                amount: { $sum: "$amount" },
+              },
+            });
+            afterQuery.push({
+              $sort: { "_id.month": 1 },
+            });
+          } else if (GRAPHICAL_VIEW_DURATION.MONTH_DAYS_DATA == duration) {
+            const dateObj = new Date();
+            const startTimeTemp = new Date(
+              dateObj.getFullYear(),
+              dateObj.getMonth(),
+              0,
+              0,
+              0,
+              0
+            ).getTime();
+            const endTimeTemp = new Date(
+              dateObj.getFullYear(),
+              dateObj.getMonth() + 1,
+              0,
+              0,
+              0,
+              0
+            ).getTime();
+
+            startTime = new Date(startTimeTemp);
+            endTime = new Date(endTimeTemp);
+
+            afterQuery.push({
+              $match: { createdAt: { $gte: startTime, $lt: endTime } },
+            });
+            afterQuery.push({
+              $project: {
+                dayOfMonth: { $dayOfMonth: "$createdAt" },
+                description: "$description",
+                category: "$category",
+                creator_id: "$creator_id",
+                amount: "$amount",
+                createdAt: "$createdAt",
+              },
+            });
+            afterQuery.push({
+              $group: {
+                _id: { dayOfMonth: "$dayOfMonth" },
+                amount: { $sum: "$amount" },
+              },
+            });
+            afterQuery.push({
+              $sort: { "_id.dayOfMonth": 1 },
+            });
+          } else {
+            const date = new Date();
+            const days = (date.getDay() + 6) % 7;
+            date.setDate(date.getDate() - days);
+            const startTimeTemp = new Date(
+              date.getFullYear(),
+              date.getMonth(),
+              date.getDate(),
+              0,
+              0,
+              0
+            ).getTime();
+
+            const endTimeTemp =
+              parseInt(startTimeTemp) + 7 * 24 * 60 * 60 * 1000;
+            startTime = new Date(startTimeTemp);
+            endTime = new Date(endTimeTemp);
+            afterQuery.push({
+              $match: { createdAt: { $gte: startTime, $lt: endTime } },
+            });
+            afterQuery.push({
+              $project: {
+                dayOfWeek: { $dayOfWeek: "$createdAt" },
+                description: "$description",
+                category: "$category",
+                creator_id: "$creator_id",
+                amount: "$amount",
+                createdAt: "$createdAt",
+              },
+            });
+            afterQuery.push({
+              $group: {
+                _id: { dayOfWeek: "$dayOfWeek" },
+                amount: { $sum: "$amount" },
+              },
+            });
+            afterQuery.push({
+              $sort: { "_id.dayOfWeek": 1 },
+            });
+          }
         }
       } else {
         if (LIST_VIEW_TIME.DATE == req.query.listViewTime) {
