@@ -208,7 +208,9 @@ const FetchTransactionController = [
               amount: { $sum: "$amount" },
             },
           });
-          console.log(afterQuery);
+          afterQuery.push({
+            $sort: { amount: 1 },
+          });
         } else {
           if (GRAPHICAL_VIEW_DURATION.MONTHLY_DATA == duration) {
             const dateObj = new Date();
