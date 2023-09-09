@@ -8,7 +8,6 @@ const Transactionschema = mongoose.Schema(
     },
     amount: {
       type: Number,
-      unique: true,
       required: true,
     },
     creator_id: {
